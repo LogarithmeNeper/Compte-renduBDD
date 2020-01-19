@@ -1,0 +1,9 @@
+CREATE DATABASE LINK DBEuropeSud
+CONNECT TO cjaverliat 
+IDENTIFIED BY mdporacle 
+USING 'DB13';
+
+CREATE DATABASE LINK DBAmerique
+CONNECT TO cjaverliat 
+IDENTIFIED BY mdporacle 
+USING 'DB14';
