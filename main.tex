@@ -217,6 +217,11 @@ Binôme responsable : B3111, OULD HAMOUDA Aymen, LAFAILLE Yann
     \includegraphics[width=15cm]{EUS_req1.PNG}
     \caption{Première requête : résultat}
 \end{figure}
+Cette requête nous retourne le bon nombre de tuple, qui est le même résultat que la requête :
+\begin{verbatim}
+    SELECT * FROM
+    Ryori.client@linkToDBCentrale
+\end{verbatim}
 
 \begin{figure}[!h]
     \centering
@@ -232,6 +237,12 @@ Binôme responsable : B3111, OULD HAMOUDA Aymen, LAFAILLE Yann
     \includegraphics[width=15cm]{EUS_req2.PNG}
     \caption{Deuxième requête : résultat}
 \end{figure}
+Cette requête nous retourne le bon nombre de tuple (le même résultat que la requête)
+\begin{verbatim}
+    SELECT *
+    FROM Ryori.client@linkToDBCentrale 
+    WHERE pays in('France','Espagne','Italie');
+\end{verbatim}
 
 \begin{figure}[!h]
     \centering
@@ -247,12 +258,14 @@ Binôme responsable : B3111, OULD HAMOUDA Aymen, LAFAILLE Yann
     \includegraphics[width=15cm]{EUS_req3.PNG}
     \caption{Troisième requête : résultat}
 \end{figure}
+Cette requête nous retourne le bon nombre de tuple (le même résultat que la requête 2 ci-dessus)
 
 \begin{figure}[!h]
     \centering
     \includegraphics[width=15cm]{EUS_req3_analyse.PNG}
     \caption{Troisième requête : analyse}
 \end{figure}
+On remarque ici que nous avons un coût de 3 pour cette requête, alors que nous avions un coût de 9 pour la requête 3. La raison est que ici on ne fait pas de remote acces.
 \newpage
 
 \subsubsection{Quatrième requête}
@@ -282,7 +295,7 @@ Binôme responsable : B3111, OULD HAMOUDA Aymen, LAFAILLE Yann
 \subsection{Europe du Nord}
 Rappel binôme responsable : Charles Javerliat, Pierre Sibut-Bourde \verb|B3109|.
 \subsubsection{Objectifs}
-%
+L’objectif de la réplication est de faciliter l’accès aux données car elles seront locales (par copie) au lieu d'être à distance.
 
 \subsubsection{Liste des réplications prévues}
 Trois réplications vont s'opérer sur ce site :
@@ -317,7 +330,8 @@ Dans tous les cas, on vérifiera la réplication en utilisant \verb|INSERT| et e
 Rappel binôme reponsable : OULD HAMOUDA Aymen, LAFAILLE Yann, \verb|B3111|
 
 \subsubsection{Objectifs}
-%
+L’objectif de la réplication est de faciliter l’accès aux données car elles seront locales (par copie) au lieu d'être à distance.
+
 
 \subsubsection{Liste des réplications prévues}
 Deux réplications sont prévues pour ce site :
@@ -328,7 +342,12 @@ Deux réplications sont prévues pour ce site :
 Comme les tables Produits et Catégories sont locales, il n'y aura pas de réplication.
 
 \subsubsection{Analyse}
-%
+Table EMPLOYES
+Nous avons fait la réplication de la table \verb|EMPLOYES_AM| en fast  car nous avons estimé qu’il y aurait peu de chances pour que les mises à jour faites sur cette table dépasse plus de 50\% de sa cardinalité .
+
+Table FOURNISSEURS
+Nous avons fait la réplication de la table \verb|FOURNISSEURS| en complete car nous avons estimé que les mises à jour faites sur cette table pourraient dépasser plus de 50\% de sa cardinalité .
+
 
 \subsubsection{Mise en \oe uvre des réplications pour les besoins locaux}
 \textbf{Fournisseurs}
