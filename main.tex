@@ -137,10 +137,9 @@ Pour les tables Employés, Fournisseurs, Catégories ou Produits, on un seul fra
 
 \subsection{Placement des fragments sur les sites (sans réplication)}
 \subsubsection{Analyse}
-Afin de placer les fragments sur les sites, il faut 
+Afin de placer les fragments sur les sites, il faut :
 %TODO
 \subsubsection{Bilan}
-%Insérer schéma global (cf. Charles?)
 %TODO
 
 \newpage
@@ -236,7 +235,12 @@ Vérification du bon fonctionnement de la table : on remarque que l'on obtient l
 \newpage 
 
 \subsubsection{Amérique}
-...
+On procède de la même façon pour le site Amérique :
+\inputminted{sql}{AM_SFW.sql}
+\newpage 
+
+Pour les vues et l'utilisation de synonymes, on a :
+\inputminted{sql}{AM_Vues.sql}
 \newpage
 
 \section{Tests de requête distribuées et optimisations}
@@ -365,7 +369,6 @@ Rappel binôme reponsable : OULD HAMOUDA Aymen, LAFAILLE Yann, \verb|B3111|
 \subsubsection{Objectifs}
 L’objectif de la réplication est de faciliter l’accès aux données car elles seront locales (par copie) au lieu d'être à distance.
 
-
 \subsubsection{Liste des réplications prévues}
 Deux réplications sont prévues pour ce site :
 \begin{itemize}
@@ -375,10 +378,10 @@ Deux réplications sont prévues pour ce site :
 Comme les tables Produits et Catégories sont locales, il n'y aura pas de réplication.
 
 \subsubsection{Analyse}
-Table EMPLOYES
-Nous avons fait la réplication de la table \verb|EMPLOYES_AM| en fast  car nous avons estimé qu’il y aurait peu de chances pour que les mises à jour faites sur cette table dépasse plus de 50\% de sa cardinalité .
+Table \verb|EMPLOYES| :\\
+Nous avons fait la réplication de la table \verb|EMPLOYES_AM| en fast  car nous avons estimé qu’il y aurait peu de chances pour que les mises à jour faites sur cette table dépasse plus de 50\% de sa cardinalité .\\
 
-Table FOURNISSEURS
+Table \verb|FOURNISSEURS| :\\
 Nous avons fait la réplication de la table \verb|FOURNISSEURS| en complete car nous avons estimé que les mises à jour faites sur cette table pourraient dépasser plus de 50\% de sa cardinalité .
 
 
@@ -389,8 +392,16 @@ Nous avons fait la réplication de la table \verb|FOURNISSEURS| en complete car 
     \inputminted{sql}{EUS_V-A-5-a1.sql}
     \item Message émis au site maître : aucune demande
     \item Réponse du site maître : aucune réponse
-    \item Tests de vérification de bon fonctionnement de la réplication : on fait un \verb|INSERT| dans la table chez le site maître et l'on vérifie que ce qui est inséré apparaît bien dans la réplication réalisée.
-    \item Évolutions éventuelles des contraintes d'intégrité
+    \item Tests de vérification de bon fonctionnement de la réplication : on fait un \verb|INSERT| dans la table chez le site maître et l'on vérifie que ce qui est inséré apparaît bien dans la réplication réalisée.\\
+    On fait : 
+    \begin{verbatim}
+    	insert into fournisseurs
+    	values (30,’Holmes & Co’,’221b Baker St’,’London’,’EC1’,
+    	‘SD’,’Royaume-Uni’,’(420) 696-9696’,null);
+    \end{verbatim}
+   	Et l'on vérifie alors bien que le tuple est inséré (c'est le cas ici).
+    
+    \item Évolutions éventuelles des contraintes d'intégrité : il faut modifier le déclencheur \verb|fk_no_fournisseur| pour que ce dernier utilise la vue matérialisée et non l'accès à distance par lien.
     \item Évolutions éventuelles des vues et des synonymes
 \end{itemize}
 
@@ -401,9 +412,45 @@ Nous avons fait la réplication de la table \verb|FOURNISSEURS| en complete car 
     \item Message émis au site maître : demande de \emph{materialized view log} sur Employés sur le site Amérique
     \item Réponse du site maître : \inputminted{sql}{EUS_V-A-5-b3.sql}
     \item Tests de vérification de bon fonctionnement de la réplication : on fait un \verb|INSERT| dans la table chez le site maître et l'on vérifie que ce qui est inséré apparaît bien dans la réplication réalisée.
-    \item Évolutions éventuelles des contraintes d'intégrité
-    \item Évolutions éventuelles des vues et des synonymes
+    On fait :
+    \begin{verbatim}
+    	insert into employes values
+    	(10,10,'a','b','c','d','10/10/10','10/10/10',10,10);
+    \end{verbatim}
+    Puis l'on vérifie alors bien que le tuple est inséré (c'est le cas ici).
+    \item Évolutions éventuelles des contraintes d'intégrité : il faut modifier le déclencheur pour que ce dernier utilie la vue matérialisée et non l'accès à distance par liens.
+    \item Évolutions éventuelles des vues et des synonymes : il faut créer un synonyme pour la table. On fait \verb|CREATE SYNONYM Employes FOR DMV_EMPLOYES;|.
 \end{itemize}
+\newpage 
 
+\subsection{Amérique}
+On procède :
+\inputminted{sql}{AM_Replica.sql}
+
+\subsection{Bilan global des réplications mises en \oe uvre sur les différents sites}
+\newpage 
+
+\section{Requêtes distribuées : tests et optimisations}
+\subsection{Europe du Sud}
+\subsubsection{Produits}
+Pour la réplication de la table Produits stockée localement, il sera nécessaire de créer un log sur celle-ci pour les 2 sites : Europe du nord et Amérique, et leur accorder le droits de lecture sur cette-dernière.
+
+Opérations réalisées en local :
+\inputminted{sql}{EUS_VI-1.sql}
+
+\subsubsection{Catégories}
+Pour la réplication de la table Catégories stockée localement, il sera nécessaire de créer un log sur celle-ci pour les 2 sites : Europe du nord et Amérique, et leur accorder le droit de lecture sur cette-dernière.
+
+Opérations réalisées en local :
+\inputminted{sql}{EUS_VI-2.sql}
+\newpage
+
+\subsection{Europe du Nord}
+%TODO
+\newpage 
+
+\subsection{Amérique}
+%TODO
+\newpage
 
 \end{document}
