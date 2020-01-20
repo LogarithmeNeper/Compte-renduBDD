@@ -1,7 +1,7 @@
-CREATE DATABASE LINK DBLCentrale 
-CONNECT TO cjaverliat 
-IDENTIFIED BY mdporacle 
+CREATE DATABASE LINK DBLCentrale
+CONNECT TO cjaverliat
+IDENTIFIED BY ****
 USING 'DB11';
 
--- ligne de test
+-- On peut tester le bon établissement de la connexion avec une requête SFW
 select * from Ryori.clients@DBLCentrale;

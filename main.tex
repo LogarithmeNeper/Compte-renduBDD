@@ -1,4 +1,3 @@
-\UseRawInputEncoding
 \documentclass[10pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -47,6 +46,9 @@ Timothé Berthier, Paul Grévaud\\
 \usepackage{fancyhdr}
 \usepackage[bottom]{footmisc}
 
+\usepackage{amssymb}
+\usepackage{ifsym}
+
 \renewcommand{\footrulewidth}{1pt} 
 \pagestyle{fancy}
 \fancyhf{}
@@ -64,7 +66,7 @@ Timothé Berthier, Paul Grévaud\\
 \newpage
 
 \section{Contexte et objectifs}
-Ce TP traite de la mise en \oe uvre d'une distribtion d'une base de donnée pour une entreprise nommée \verb|Ryori| et opérante sur trois grandes régions du monde (ici, distribution sur trois binômes) : Amérique, Europe du Sud, Europe du Nord. Ce sujet propose la mise en place de quatre applications déployées \verb|MakeIt| (fabrication), \verb|DesignIt| (conception), \verb|SellIt| (vente) et \verb|RH| (ressources humaines). L'objectif majeur est d'opérer cette conversion de telle sorte que rien ne soit perdu dans l'opération : ni les possibilités de la table originelle, ni aucun tuples dans une requête quelconque dans la base de donnée (une requête de la forme \verb|SELECT * FROM ...| doit rendre la même chose dans l'ancienne base et dans la nouvelle).
+Ce TP traite de la mise en \oe uvre d'une distribtion d'une base de donnée pour une entreprise nommée \verb|Ryori| et opérante sur trois grandes régions du monde (ici, distribution sur trois binômes) : Amérique, Europe du Sud, Europe du Nord. Ce sujet propose la mise en place de quatre applications déployées \verb|MakeIt| (fabrication), \verb|DesignIt| (conception), \verb|SellIt| (vente) et \verb|RH| (ressources humaines). L'objectif majeur est d'opérer cette conversion de telle sorte que rien ne soit perdu dans l'opération : ni les possibilités de la table originelle, ni aucun tuples dans une requête quelconque dans la base de donnée (une requête \verb|SFW| doit rendre la même chose dans la base centralisée et dans la nouvelle distribuée).
 
 \section{Présentation rôles}
 \subsection{Groupes}
@@ -95,19 +97,38 @@ On évitera, dans ce compte-rendu, au maximum les redites. Cependant, travailler
 \subsubsection{Table Stock (fragmentation horizontale)}
 On lit dans le sujet que l'on peut séparer le stock global en fonction de la région considérée, avec un cas particulier pour l'Allemagne pour l'application \verb|MakeIt| développée par l'Europe du Nord. On écrit la partition de Stock comme :
 \[\text{Stock}=\underbrace{(\text{Stock}_{\text{Allemagne}}\sqcup\text{Stock}_{\text{EUN not All.}}\sqcup\text{Stock}_{\text{Autre}})}_{\text{Europe du Nord}}\sqcup\underbrace{\text{Stock}_{\text{EUS}}}_{\text{Europe du Sud}}\sqcup\underbrace{\text{Stock}_{\text{Am}}}_{\text{Amérique}}\]
-En utilisant cela, on peut fragmenter horizontalement ($\sqcup$ indique l'union disjointe) la table de stock pour que la gestion se fasse en des sites différents.\\
+En utilisant cela, on peut fragmenter horizontalement ($\sqcup$ indique l'union disjointe) la table de stock pour que la gestion se fasse en des sites différents.
+Ce qui en relations algébriques donnera:
+\[Stock_{Allemagne} = \sigma_{(Pays = Allemagne)}(Stock)\]
+\[Stock_{EUN} = \sigma_{(Pays \in PaysEUN) \land (Pays \neq Allemagne)}(Stock)\]
+\[Stock_{EUS} = \sigma_{(Pays \in PaysEUS)}(Stock)\]
+\[Stock_{Am} = \sigma_{(Pays \in PaysAm)}(Stock)\]
+\[Stock_{Autre} = \sigma_{(Pays \not\in (PaysEUN \cup PaysEUS \cup PaysAm))}(Stock)\]
+\\
 \textbf{Justification :} L'application \verb|MakeIt|, développée en Europe du Nord, a l'accès total au stock allemand, donc on crée un fragment correspondant. Mais elle utilise également le stock local pour l'application \verb|SellIt| et, pour éviter le doublon, on peut créer une table locale excluant la table allemande. De plus, pour l'ouverture internationale (marchés asiatique, africain, océanien) il faut la gestion des autres pays et, comme le siège social est situé en Allemagne, on s'occupe du stock autre dans cette partie. La gestion locale de l'Europe du Sud et de l'Amérique se justifie par l'application \verb|SellIt|. 
 
 \subsubsection{Table Clients (fragmentation horizontale)}
-On lit dans le sujet que l'on peut séparer les clients en fonction de la région considérée. On détermine alors quatre fragments associés à la table Clients utilisée dans l'application \verb|SellIt| afin de fragmenter horizontalement selon la partition suivante. La gestion des clients autres se faire sur la base de donnée associée à l'Europe du Nord (cf. ci-dessus avec l'ouverture internationale)
+On lit dans le sujet que l'on peut séparer les clients en fonction de la région considérée. On détermine alors quatre fragments associés à la table Clients utilisée dans l'application \verb|SellIt| afin de fragmenter horizontalement selon la partition suivante. La gestion des clients autres se fait sur la base de donnée associée à l'Europe du Nord (cf. ci-dessus avec l'ouverture internationale)
 \[\text{Clients}=\underbrace{(\text{Clients}_{\text{EUN}}\sqcup\text{Clients}_{\text{Autre}})}_{\text{Europe du Nord}}\sqcup\underbrace{\text{Clients}_{\text{EUS}}}_{\text{Europe du Sud}}\sqcup\underbrace{\text{Clients}_{\text{Am}}}_{\text{Amérique}}\]
 
-\subsubsection{Table Commande (fragmentation horizontale dérivée)}
-Pour la table Commande utilisée dans l'application \verb|SellIt|, on réalise une fragmentation horizontale dérivée avec une selection par semi-jointure entre les commandes et les clients, afin de récupérer seulement les commandes relatives à des clients pour une région donnée. Cela donne quatre fragments, équivalents à la partie précédente :
+\[Clients_{EUN} = \sigma_{(Pays \in PaysEUN)}(Clients)\]
+\[Clients_{EUS} = \sigma_{(Pays \in PaysEUS)}(Clients)\]
+\[Clients_{Am} = \sigma_{(Pays \in PaysAm)}(Clients)\]
+\[Clients_{Autre} = \sigma_{(Pays \not\in (PaysEUN \cup PaysEUS \cup PaysAm))}(Clients)\]
+
+\subsubsection{Table Commandes (fragmentation horizontale dérivée)}
+Pour la table Commandes utilisée dans l'application \verb|SellIt|, on réalise une fragmentation horizontale dérivée avec une selection par semi-jointure entre les commandes et les clients, ainsi chaque base de donnée possédera les commandes de ses propres clients:
+\[Commandes_{EUN} = Commandes \ltimes Clients_{EUN}\]
+\[Commandes_{EUS} = Commandes \ltimes Clients_{EUS}\]
+\[Commandes_{Am} = Commandes \ltimes Clients_{Am}\]
+Afin de récupérer seulement les commandes relatives à des clients pour une région donnée. Cela donne quatre fragments, équivalents à la partie précédente :
 \[\text{Commande}=\underbrace{(\text{Commande}_{\text{EUN}}\sqcup\text{Commande}_{\text{Autre}})}_{\text{Europe du Nord}}\sqcup\underbrace{\text{Commande}_{\text{EUS}}}_{\text{Europe du Sud}}\sqcup\underbrace{\text{Commande}_{\text{Am}}}_{\text{Amérique}}\]
 
-\subsubsection{Table DétailsCommande (fragmentation horizontale)}
-Pour la table DétailsCommande utilisée dans l'application \verb|SellIt|, on réalise une fragmentation horizontale dérivée avec une selection par semi-jointure entre les commandes et les clients, afin de récupérer seulement le détail des commandes relatives à des clients pour une région donnée. 
+\subsubsection{Table Details\_Commandes (fragmentation horizontale dérivée)}
+Pour la table DetailsCommandes utilisée dans l'application \verb|SellIt|, on réalise une fragmentation horizontale dérivée avec une selection par semi-jointure entre les détails des commandes et les commandes, afin de récupérer seulement le détail des commandes relatives aux commandes présentes dans la base:
+\[Details\_Commandes_{EUN} = Details\_Commandes \ltimes Commandes_{EUN}\]
+\[Details\_Commandes_{EUS} = Details\_Commandes \ltimes Commandes_{EUS}\]
+\[Details\_Commandes_{Am} = Details\_Commandes \ltimes Commandes_{Am}\]
 
 \subsubsection{Autres tables}
 Pour les tables Employés, Fournisseurs, Catégories ou Produits, on un seul fragment que l'on situera respectivement dans les bases de données gérées par le site Amérique, Europe du Nord, Europe du Sud (deux fois).
@@ -117,13 +138,15 @@ Pour les tables Employés, Fournisseurs, Catégories ou Produits, on un seul fra
 \subsection{Placement des fragments sur les sites (sans réplication)}
 \subsubsection{Analyse}
 Afin de placer les fragments sur les sites, il faut 
+%TODO
 \subsubsection{Bilan}
 %Insérer schéma global (cf. Charles?)
+%TODO
 
 \newpage
 \subsection{Mise en \oe uvre de la base sans réplication}
 \subsubsection{Site Europe du Nord}
-Binôme responsable : Javerliat Charles, Sibut-Bourde Pierre, binôme numéro \verb|B3109|
+Binôme responsable : Javerliat Charles, Sibut-Bourde Pierre, binôme numéro \verb|B3109|\\
 
 Connexion à la base centralisée :
 \inputminted{sql}{EUN_connexion_db_ryori.sql}
@@ -137,23 +160,33 @@ Création et peuplement des tables (réalisés dans le même temps) :\\
 \inputminted{sql}{INSA-DB12-EuropeNord-fragmentation.sql}
 \newpage 
 
-Contraintes d'intégrité : Lors de la création des fragments, sont importés tous les checks de façon automatique. Il faut cependant ajouter les clés primaires et les clés étrangères. En cela, on distingue deux cas : ou bien l'on regarde au sein même d'une base, et auquel cas l'on crée les clés avec la syntaxe :\\
-\inputminted{sql}{INSA-DB12-EuropeNord-contraintes.sql}
+Contraintes d'intégrité : Lors de la création des fragments, sont importés tous les checks de la base centralisée de façon automatique. Il faut cependant ajouter les clés primaires et les clés étrangères. Pour les clés primaires, on travaille de manière classique:\\
+\inputminted{sql}{INSA-DB12-EuropeNord-contraintes-pk.sql}
+
 \newpage
 
-ou bien l'on regarde entre deux fragments situés sur des sites différents avec un trigger, que l'on crée avec :
+Pour les clés étrangères on distingue deux cas : ou bien l'on regarde au sein même d'une base, et auquel cas l'on crée les clés avec la syntaxe traditionnelle des foreign key, sinon on crée un trigger dans les deux bases ayant une relation de clé étrangère :\\
+
+\inputminted{sql}{INSA-DB12-EuropeNord-contraintes-fk.sql}
 \inputminted{sql}{INSA-DB12-EuropeNord-trigger.sql}
+
+Il faut également rajouter de nouvelles contraintes pour s'assurer qu'on ne puisse pas rajouter des données incohérentes avec notre stratégie de fragmentation (empêcher de rajouter un client américain en Europe, par exemple).
+
+\inputminted{sql}{INSA-DB12-EuropeNord-contraintes.sql}
+
 \newpage
 
-Pour les droits d'accès, on utilise le script générant que l'on trouve en annexe : il envoie le résultat dans le fichier \verb|droits_acces.sql| que l'on pourrait réutiliser directement\footnote{Ceci permet d'éviter de recopier ou nettoyer à la main.}.
+Pour les droits d'accès, on utilise un script pour nous générer toutes les requêtes : il envoie le résultat dans le fichier \verb|droits_acces.sql| que l'on peut exécuter directement\footnote{Ceci permet d'éviter de recopier les affectations de droits pour chaque table.}.
 \inputminted{sql}{INSA-DB12-droits-acces.sql}
 \newpage
+
+Pour interroger notre base de donnée comme si elle était centralisée, c'est à dire en voyant également les clients américains et d'Europe du sud, on crée des vues.\\
 
 Création des vues, permettant l'interrogation de la base de données :
 \inputminted{sql}{INSA-DB12-EuropeNord-vues.sql}
 \newpage 
 
-Nettoyage éventuel du fragment :
+Nettoyages éventuels :
 \inputminted{sql}{INSA-DB12-EuropeNord-drop.sql}
 \newpage
 
