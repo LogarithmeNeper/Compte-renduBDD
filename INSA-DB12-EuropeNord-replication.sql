@@ -1,5 +1,5 @@
 CREATE MATERIALIZED VIEW MVR_Employes
-REFRESH COMPLETE
+REFRESH FAST
 NEXT sysdate + (1/24/60)
 AS
 SELECT *
@@ -12,12 +12,7 @@ AS
 SELECT * FROM AOULDHAMOU.PRODUITS@DBEuropeSud;
 
 CREATE MATERIALIZED VIEW MVR_Categories
-REFRESH FAST
+REFRESH COMPLETE
 NEXT sysdate + (1/24/60)
 AS
 SELECT * FROM AOULDHAMOU.CATEGORIES@DBEuropeSud;
-
-CREATE MATERIALIZED VIEW LOG ON FOURNISSEURS;
-GRANT SELECT ON MLOG$_FOURNISSEURS TO aouldhamou, tberthier;
--- La derniere ligne permet aux utilisateurs de faire un refresh start
--- sur la table des fournisseurs
