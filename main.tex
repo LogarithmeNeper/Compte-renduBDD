@@ -156,13 +156,11 @@ Pour la table DetailsCommandes utilisée dans l'application \verb|SellIt|, on r�
 \subsubsection{Autres tables}
 Pour les tables Employés, Fournisseurs, Catégories ou Produits, on un seul fragment que l'on situera respectivement dans les bases de données gérées par le site Amérique, Europe du Nord, Europe du Sud (deux fois).
 
-\subsubsection{Bilan de la fragmentation}
-
 \subsection{Placement des fragments sur les sites (sans réplication)}
 \subsubsection{Analyse}
 Afin de placer les fragments sur les sites, il faut effectivement fragmenter la table initiale comme indiqué précédemment, ce qui permet d'être plus efficace, en cela que chaque site gère la base à laquelle il accède le plus souvent. 
 
-\subsubsection{Bilan}
+\subsubsection{Bilan général de la fragmentation}
 Le bilan est alors, site par site :
 \begin{verbatim}
 Europe du Nord :
