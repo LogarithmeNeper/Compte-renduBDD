@@ -1,4 +1,3 @@
-
 --Reponse du site maitre
 
 CREATE MATERIALIZED VIEW LOG ON EMPLOYES;

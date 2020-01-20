@@ -11,6 +11,7 @@
 \usepackage{xcolor}
 \usepackage{spverbatim}
 
+\usepackage{float}
 \usepackage{microtype}
 \usepackage{hyperref} \hypersetup{pdfstartview=XYZ}
 \usepackage{array}
@@ -33,7 +34,7 @@
             
 \usepackage{minted}
 
-\title{Compte-rendu SGBD TP n$^\circ$3}
+\title{\textbf{Compte-rendu SGBD TP n$^\circ$3}}
 \author{
 Charles Javerliat, Pierre Sibut-Bourde\\
 Aymen Ould Hamouda, Yann Lafaille\\
@@ -49,6 +50,27 @@ Timothé Berthier, Paul Grévaud\\
 \usepackage{amssymb}
 \usepackage{ifsym}
 
+%Pour changer la profondeur d'affichage du sommaire
+%\setcounter{tocdepth}{4}
+%\setcounter{secnumdepth}{4}
+
+\renewcommand\thesection{\Roman{section}}
+\renewcommand\thesubsection{\thesection.\Alph{subsection}}
+\renewcommand\thesubsubsection{\thesubsection.\arabic{subsubsection}}
+\renewcommand\theparagraph{\thesubsubsection.\alph{paragraph}}
+
+\usepackage{titling}
+
+\newcommand{\subtitle}[1]{%
+  \posttitle{%
+    \par\end{center}
+    \begin{center}\LARGE#1\end{center}
+    \vskip0.5em}%
+}
+
+\renewcommand\maketitlehooka{\null\mbox{}\vfill}
+\renewcommand\maketitlehookd{\vfill\null}
+
 \renewcommand{\footrulewidth}{1pt} 
 \pagestyle{fancy}
 \fancyhf{}
@@ -62,6 +84,7 @@ Timothé Berthier, Paul Grévaud\\
     Ce TP traite de la mise en \oe uvre d'une distribtion d'une base de donnée pour une entreprise nommée \verb|Ryori| et opérante sur trois grandes régions du monde : Amérique, Europe du Sud, Europe du Nord. Ce sujet propose la mise en place de quatre applications déployées \verb|MakeIt| (fabrication), \verb|DesignIt| (conception), \verb|SellIt| (vente) et \verb|RH| (ressources humaines).
 \end{abstract}
 
+\newpage
 \tableofcontents
 \newpage
 
@@ -139,34 +162,53 @@ Pour les tables Employés, Fournisseurs, Catégories ou Produits, on un seul fra
 \subsubsection{Analyse}
 Afin de placer les fragments sur les sites, il faut :
 %TODO
+%Efficacité de notre fragmentation
+%Eviter de répéter ce qui a été dit au dessus
 \subsubsection{Bilan}
+<<<<<<< HEAD
+=======
+%Insérer schéma global (cf. Charles?) -> écrire l'ensemble des tables de chaque base plutôt: EuropeDuNord = Clients_EU_N + Clients_AUTRE + ..., etc
+>>>>>>> 70bdd1592e9cdde81ebc12dc13f54ee895725d2c
 %TODO
 
 \newpage
 \subsection{Mise en \oe uvre de la base sans réplication}
 \subsubsection{Site Europe du Nord}
-Binôme responsable : Javerliat Charles, Sibut-Bourde Pierre, binôme numéro \verb|B3109|\\
 
-Connexion à la base centralisée :
+\paragraph{Binôme responsable}
+
+Javerliat Charles, Sibut-Bourde Pierre, binôme numéro \verb|B3109|
+
+\paragraph{Connexion à la base centralisée}
+
 \inputminted{sql}{EUN_connexion_db_ryori.sql}
-\newpage
 
-Création des liens :
+\paragraph{Création des liens entre les bases}
+
+Pour communiquer avec les autres bases de données (Amérique et Europe du Sud), on a besoin de créer des liens.
+
 \inputminted{sql}{INSA-DB12-EuropeNord-creation-liens-db.sql}
 \newpage 
 
-Création et peuplement des tables (réalisés dans le même temps) :\\
+\paragraph{Création et peuplement des tables}
+
 \inputminted{sql}{INSA-DB12-EuropeNord-fragmentation.sql}
 \newpage 
 
-Contraintes d'intégrité : Lors de la création des fragments, sont importés tous les checks de la base centralisée de façon automatique. Il faut cependant ajouter les clés primaires et les clés étrangères. Pour les clés primaires, on travaille de manière classique:\\
+\paragraph{Contraintes d'intégrité}
+
+Lors de la création des fragments, sont importés tous les checks de la base centralisée de façon automatique. Il faut cependant ajouter les clés primaires et les clés étrangères. Pour les clés primaires, on travaille de manière classique:\\
 \inputminted{sql}{INSA-DB12-EuropeNord-contraintes-pk.sql}
 
 \newpage
 
-Pour les clés étrangères on distingue deux cas : ou bien l'on regarde au sein même d'une base, et auquel cas l'on crée les clés avec la syntaxe traditionnelle des foreign key, sinon on crée un trigger dans les deux bases ayant une relation de clé étrangère :\\
+Pour les clés étrangères on distingue deux cas. Dans le premier cas, si on crée des clés étrangères au sein d'une base locale, et auquel cas l'on crée les clés avec la syntaxe traditionnelle des foreign key.
 
 \inputminted{sql}{INSA-DB12-EuropeNord-contraintes-fk.sql}
+
+Dans le second cas, on veut créer une clé étrangère sur un attribut d'une table distante, on va donc créer un trigger dans les deux bases concernées par la relation de clé étrangère.\\
+Ainsi, si l'on essaie de supprimer un attribut d'un tuple utilisé comme clé étrangère dans une table distante, on l'empêchera par le biais d'un trigger sur la suppression. Pour l'autre base (celle contenant la clé étrangère) on ajoutera un trigger à l'insertion ou à la mise à jour pour vérifier que la valeur existe bien dans la table distante. \\
+
 \inputminted{sql}{INSA-DB12-EuropeNord-trigger.sql}
 
 Il faut également rajouter de nouvelles contraintes pour s'assurer qu'on ne puisse pas rajouter des données incohérentes avec notre stratégie de fragmentation (empêcher de rajouter un client américain en Europe, par exemple).
@@ -175,18 +217,27 @@ Il faut également rajouter de nouvelles contraintes pour s'assurer qu'on ne pui
 
 \newpage
 
-Pour les droits d'accès, on utilise un script pour nous générer toutes les requêtes : il envoie le résultat dans le fichier \verb|droits_acces.sql| que l'on peut exécuter directement\footnote{Ceci permet d'éviter de recopier les affectations de droits pour chaque table.}.
+\paragraph{Droits d'accès}
+
+Pour permettre aux autres bases de données de pouvoir lire le contenu de nos tables, on a besoin de leur donner les droits de sélection. On utilise un script pour nous générer toutes les requêtes : il envoie le résultat dans le fichier \verb|droits_acces.sql| que l'on peut exécuter directement\footnote{Ceci permet d'éviter de recopier les affectations de droits pour chaque table.}.
 \inputminted{sql}{INSA-DB12-droits-acces.sql}
 \newpage
 
-Pour interroger notre base de donnée comme si elle était centralisée, c'est à dire en voyant également les clients américains et d'Europe du sud, on crée des vues.\\
+\paragraph{Création des vues}
 
-Création des vues, permettant l'interrogation de la base de données :
+Les vues permettent l'interrogation de la base de données locale, comme si il s'agissait de la base de données centralisée. Elles utilisent donc le résultat de plusieurs sélections vers les bases de données Amérique et Europe de Sud pour recomposer les tables complètes.
+
 \inputminted{sql}{INSA-DB12-EuropeNord-vues.sql}
-\newpage 
 
-Nettoyages éventuels :
+\newpage
+
+\paragraph{Nettoyages éventuels}
+
 \inputminted{sql}{INSA-DB12-EuropeNord-drop.sql}
+
+\paragraph{Tests de vérification du bon fonctionnement}
+
+\inputminted{sql}{INSA-DB12-EuropeNord-bon-fonctionnement.sql}
 \newpage
 
 \subsubsection{Europe du Sud}
@@ -235,12 +286,18 @@ Vérification du bon fonctionnement de la table : on remarque que l'on obtient l
 \newpage 
 
 \subsubsection{Amérique}
+<<<<<<< HEAD
 On procède de la même façon pour le site Amérique :
 \inputminted{sql}{AM_SFW.sql}
 \newpage 
 
 Pour les vues et l'utilisation de synonymes, on a :
 \inputminted{sql}{AM_Vues.sql}
+=======
+
+%TODO
+...
+>>>>>>> 70bdd1592e9cdde81ebc12dc13f54ee895725d2c
 \newpage
 
 \section{Tests de requête distribuées et optimisations}
@@ -249,7 +306,7 @@ Binôme responsable : B3111, OULD HAMOUDA Aymen, LAFAILLE Yann
 
 \subsubsection{Première requête}
 \inputminted{sql}{EUS_IV-A-1.sql}
-\begin{figure}[!h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=15cm]{EUS_req1.PNG}
     \caption{Première requête : résultat}
@@ -260,7 +317,7 @@ Cette requête nous retourne le bon nombre de tuple, qui est le même résultat 
     Ryori.client@linkToDBCentrale
 \end{verbatim}
 
-\begin{figure}[!h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=15cm]{EUS_req1_analyse.PNG}
     \caption{Première requête : analyse}
@@ -269,7 +326,7 @@ Cette requête nous retourne le bon nombre de tuple, qui est le même résultat 
 
 \subsubsection{Deuxième requête}
 \inputminted{sql}{EUS_IV-A-2.sql}
-\begin{figure}[!h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=15cm]{EUS_req2.PNG}
     \caption{Deuxième requête : résultat}
@@ -281,23 +338,24 @@ Cette requête nous retourne le bon nombre de tuple (le même résultat que la r
     WHERE pays in('France','Espagne','Italie');
 \end{verbatim}
 
-\begin{figure}[!h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=15cm]{EUS_req2_analyse.PNG}
     \caption{Deuxième requête : analyse}
 \end{figure}
 \newpage
 
+%TODO METTRE A JOUR
 \subsubsection{Troisième requête}
 \inputminted{sql}{EUS_IV-A-3.sql}
-\begin{figure}[!h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=15cm]{EUS_req3.PNG}
     \caption{Troisième requête : résultat}
 \end{figure}
 Cette requête nous retourne le bon nombre de tuple (le même résultat que la requête 2 ci-dessus)
 
-\begin{figure}[!h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=15cm]{EUS_req3_analyse.PNG}
     \caption{Troisième requête : analyse}
@@ -307,13 +365,13 @@ On remarque ici que nous avons un coût de 3 pour cette requête, alors que nous
 
 \subsubsection{Quatrième requête}
 \inputminted{sql}{EUS_IV-A-4.sql}
-\begin{figure}[!h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=15cm]{EUS_req4.PNG}
     \caption{Quatrième requête : résultat}
 \end{figure}
 
-\begin{figure}[!h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=15cm]{EUS_req4_analyse.PNG}
     \caption{Quatrième requête : analyse}
@@ -321,11 +379,67 @@ On remarque ici que nous avons un coût de 3 pour cette requête, alors que nous
 \newpage
 
 \subsection{Europe du Nord}
-%
+
+\subsubsection{Sélection de tous les clients}
+
+\inputminted{sql}{INSA-DB12-EuropeNord-req1.sql}
+
+\paragraph{Résultat d'éxecution}
+
+On obtient le même résultat que la sélection de tous les clients sur la base de données centralisée (91 lignes).
+
+\paragraph{Analyse du plan d'exécution}
+
+On constate qu'on fait 2 accès à des tables locales (CLIENTS\_EU\_N et CLIENTS\_AUTRES) ainsi que 2 accès distants, il s'agit des accès réalisés par la vue Clients vers les tables des clients en Europe du Sud et en Amérique, on remarquera que le coût calculé est de 14.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=15cm]{INSA-DB12-EuropeNord-plan-exec-vues-distante1.png}
+    \caption{Plan d'exécution de la requête}
+\end{figure}
+
+\paragraph{Autre écriture possible}
+
+Autrement dit, la même requête peut s'écrire:
+\inputminted{sql}{INSA-DB12-EuropeNord-req1-bis.sql}
+
+\subsubsection{Sélection d'un sous-ensemble de clients de l'Europe du Nord}
+
+Dans ce cas on essaie de récupérer les clients du Royaume-Uni, du Danemark, et de l'Allemagne.
+\inputminted{sql}{INSA-DB12-EuropeNord-req2.sql}
+
+\paragraph{Résultat d'éxecution}
+
+On obtient un ensemble de 20 clients.
+
+\paragraph{Analyse du plan d'exécution}
+
+On constate qu'on fait 2 accès à des tables locales (CLIENTS\_EU\_N et CLIENTS\_AUTRES) ainsi que 2 accès distants, comme pour la première requête. Néanmoins cette requête est criticable, car nos clients se trouvent tous dans CLIENTS\_EU\_N. Il y a donc 3 accès à des tables inutiles dans cette requête. Le coût peut être réduit.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=15cm]{INSA-DB12-EuropeNord-plan-exec-vues-distante2.png}
+    \caption{Plan d'exécution de la requête}
+\end{figure}
+
+\paragraph{Autre écriture possible}
+
+\inputminted{sql}{INSA-DB12-EuropeNord-req3.sql}
+
+Avec cette requête on a un seul accès à la table CLIENTS\_EU\_N, ce qui est beaucoup plus optimisé. C'est tout l'intérêt de notre fragmentation.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=15cm]{INSA-DB12-EuropeNord-plan-exec-vues-distante3.png}
+    \caption{Plan d'exécution de la requête}
+\end{figure}
+
+On portera une attention toute particulière au coût de la requête, ainsi passé de 14 à 3. Ce coût se traduit directement par une vitesse d'exécution de la requête plus rapide (100ms -> 50ms).
+
 \newpage
 
 \subsection{Amérique}
-%
+%TODO
 \newpage
 
 \section{Réplications}
@@ -343,23 +457,66 @@ Trois réplications vont s'opérer sur ce site :
 \end{itemize}
 
 \subsubsection{Analyse}
-%
+%TODO
 
 \subsubsection{Mise en \oe uvre des réplications pour des besoins locaux}
 On utilise à ce sujet :
 \inputminted{sql}{INSA-DB12-EuropeNord-replication.sql}
-Respectivement, on a :
+Dans le cas des refresh-fast, on a besoin que le site maitre (celui qui possède les données) crée un fichier de log pour que le refresh accède à l'historique des modifications/différences.
+\hfill\break\hfill\break
+\textbf{Produits}
+Nous avons fait la réplication de la table \verb|Produits| en refresh-fast car il est peu probable que les mises à jour faites sur cette table dépassent plus de 50\% de sa cardinalité.
+\hfill\break\hfill\break
+\textbf{Employes}
+Nous avons utilisé le refresh-fast, même si un complete aurait été également possible en supposant que les employés changent régulièrement en masse (cas des emplois intérimaires par exemple).
+\hfill\break\hfill\break
+\textbf{Categories}
+Nous avons fait la réplication de la table \verb|Produits| en refresh-complete pour essayer cette méthode en plus du fast, sans raison particulière.
+\hfill\break\hfill\break
+
+\textbf{Pour l'Europe du Sud:}
+
 \begin{itemize}
-    \item Message émis au site maître : aucune demande
-    \item Réponse du site maître : aucune réponse
-    \item Tests de vérification de bon fonctionnement de la réplication : on fait un \verb|INSERT| dans la table chez le site maître et l'on vérifie que ce qui est inséré apparaît bien dans la réplication réalisée.
-    \item Évolutions éventuelles des contraintes d'intégrité
-    \item Évolutions éventuelles des vues et des synonymes
+    \item Message émis à l'Europe du Sud : créer un fichier de log pour Produits
+    \item Réponse du site maître : 
+    
+\inputminted{sql}{INSA-DB12-EuropeNord-rep-eu-s.sql}
+    
+    \item Tests de vérification de bon fonctionnement de la réplication : après que l'Europe du Sud ait rajouté un nouveau produit dans leur table, on le voit bien apparaitre dans notre réplicat.
 \end{itemize}
+
+\textbf{Pour l'Amérique:}
+
+\begin{itemize}
+    \item Message émis à l'Amérique : créer un fichier de log pour Employes
+    \item Réponse du site maître : 
+    
+\inputminted{sql}{INSA-DB12-EuropeNord-rep-am.sql}
+    
+    \item Tests de vérification de bon fonctionnement de la réplication : après que l'Amérique ait rajouté un nouvel employé dans leur table, on le voit bien apparaitre dans notre réplicat.
+\end{itemize}
+
 ~\\
-Concernant les réplicats, on a :
+
+\subsubsection{Mise à jour des vues}
+
+On met à jour nos vues pour utiliser les réplicats:
 \inputminted{sql}{INSA-DB12-EuropeNord-vues-replicats.sql}
-Dans tous les cas, on vérifiera la réplication en utilisant \verb|INSERT| et en vérifiant que le tuple inséré est apparent dans le réplicat nouvellement créé.
+Dans tous les cas, on vérifie le bon fonctionnement de la réplication en utilisant \verb|INSERT| et en vérifiant que le tuple inséré est apparent dans le réplicat des autres bases de données distantes en communiquant avec nos collègues.
+
+\subsubsection{Création de logs pour les autres sites}
+
+Nous avons reçu une demande de nos collègues américains de création de logs pour qu'ils puissent utiliser les refresh-fast sur notre table Fournisseurs:
+
+\begin{itemize}
+    \item Message reçu par l'Amérique : créer un fichier de log pour Fournisseurs
+    \item Réponse : 
+    
+\inputminted{sql}{INSA-DB12-EuropeNord-rep-eu-n.sql}
+    
+    \item Tests de vérification de bon fonctionnement de la réplication : après avoir  rajouté un nouveau fournisseur dans notre table, les américains le voient bien apparaitre dans leur réplicat.
+\end{itemize}
+
 
 \newpage
 
@@ -390,6 +547,7 @@ Nous avons fait la réplication de la table \verb|FOURNISSEURS| en complete car 
 \begin{itemize}
     \item Opéations réalisées localement
     \inputminted{sql}{EUS_V-A-5-a1.sql}
+<<<<<<< HEAD
     \item Message émis au site maître : aucune demande
     \item Réponse du site maître : aucune réponse
     \item Tests de vérification de bon fonctionnement de la réplication : on fait un \verb|INSERT| dans la table chez le site maître et l'on vérifie que ce qui est inséré apparaît bien dans la réplication réalisée.\\
@@ -402,6 +560,13 @@ Nous avons fait la réplication de la table \verb|FOURNISSEURS| en complete car 
    	Et l'on vérifie alors bien que le tuple est inséré (c'est le cas ici).
     
     \item Évolutions éventuelles des contraintes d'intégrité : il faut modifier le déclencheur \verb|fk_no_fournisseur| pour que ce dernier utilise la vue matérialisée et non l'accès à distance par lien.
+=======
+    \item Message émis au site Europe du Nord : créer des logs pour Fournisseurs 
+    \item Réponse du site maître :
+\inputminted{sql}{INSA-DB12-EuropeNord-rep-eu-n.sql}
+    \item Tests de vérification de bon fonctionnement de la réplication : on fait un \verb|INSERT| dans la table chez le site maître et l'on vérifie que ce qui est inséré apparaît bien dans la réplication réalisée.
+    \item Évolutions éventuelles des contraintes d'intégrité
+>>>>>>> 70bdd1592e9cdde81ebc12dc13f54ee895725d2c
     \item Évolutions éventuelles des vues et des synonymes
 \end{itemize}
 
@@ -409,7 +574,7 @@ Nous avons fait la réplication de la table \verb|FOURNISSEURS| en complete car 
 \begin{itemize}
     \item Opéations réalisées localement
     \inputminted{sql}{EUS_V-A-5-b1.sql}
-    \item Message émis au site maître : demande de \emph{materialized view log} sur Employés sur le site Amérique
+    \item Message émis au site Amérique : demande de \emph{materialized view log} sur Employés sur le site Amérique
     \item Réponse du site maître : \inputminted{sql}{EUS_V-A-5-b3.sql}
     \item Tests de vérification de bon fonctionnement de la réplication : on fait un \verb|INSERT| dans la table chez le site maître et l'on vérifie que ce qui est inséré apparaît bien dans la réplication réalisée.
     On fait :
@@ -428,6 +593,7 @@ On procède :
 \inputminted{sql}{AM_Replica.sql}
 
 \subsection{Bilan global des réplications mises en \oe uvre sur les différents sites}
+<<<<<<< HEAD
 \newpage 
 
 \section{Requêtes distribuées : tests et optimisations}
@@ -452,5 +618,38 @@ Opérations réalisées en local :
 \subsection{Amérique}
 %TODO
 \newpage
+=======
+%TODO
+
+\begin{table}[H]
+\begin{tabular}{|r|c|c|c|}
+\hline
+\multicolumn{1}{|l|}{} & \textbf{Europe du Nord} & \textbf{Europe du Sud} & \textbf{Amérique} \\ \hline
+\multicolumn{1}{|c|}{\textbf{Réplicat}} & \multicolumn{3}{c|}{\textbf{Type du réplicat}} \\ \hline
+Fournisseurs & x & refresh-complete & refresh-complete \\ \hline
+Employes & refresh-fast & refresh-fast & x \\ \hline
+Produits & refresh-fast & x & refresh-fast \\ \hline
+Categories & refresh-complete & x & refresh-fast \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Requêtes distribuées : tests et optimisations}
+
+\subsection{Europe du Nord}
+
+On exécute des requêtes pour tester les réplicats, on prendra l'exemple de Produits.\\La requête est la suivante:
+
+\inputminted{sql}{INSA-DB12-EuropeNord-replicats-tests.sql}
+
+Le résultat est identique à celui sans réplicats (par accès à distance), mais il est bien plus rapide (42ms -> 20ms). Cela montre bien l'intérêt des réplicats pour l'optimisation des requêtes.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=15cm]{INSA-DB12-EuropeNord-plan-exec-vues-replicat-produits.png}
+    \caption{Plan d'exécution de la requête}
+\end{figure}
+
+%TODO
+>>>>>>> 70bdd1592e9cdde81ebc12dc13f54ee895725d2c
 
 \end{document}
