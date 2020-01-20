@@ -19,10 +19,11 @@ create table Stock_AM as
 (select * from Ryori.stock@DBL_principale 
 where pays in (--Amerique
   'Antigua-et-Barbuda', 'Argentine', 'Bahamas', 'Barbade', 'Belize', 'Bolivie', 
-  'Bresil', 'Canada', 'Chili', 'Colombie', 'Costa Rica', 'Cuba', 'Republique dominicaine', 'Dominique',
-  'Equateur', 'Etats-Unis', 'Grenade', 'Guatemala', 'Guyana', 'Haiti', 'Honduras', 'Jamaique',
-  'Mexique', 'Nicaragua', 'Panama', 'Paraguay', 'Perou', 'Saint-Christophe-et-Nieves', 'Sainte-Lucie', 
-  'Saint-Vincent-et-les Grenadines', 'Salvador', 'Suriname', 'Trinite-et-Tobago', 'Uruguay', 'Venezuela');
+  'Bresil', 'Canada', 'Chili', 'Colombie', 'Costa Rica', 'Cuba', 'Republique dominicaine', 
+  'Dominique', 'Equateur', 'Etats-Unis', 'Grenade', 'Guatemala', 'Guyana', 'Haiti', 
+  'Honduras', 'Jamaique', 'Mexique', 'Nicaragua', 'Panama', 'Paraguay', 'Perou', 
+  'Saint-Christophe-et-Nieves', 'Sainte-Lucie', 'Saint-Vincent-et-les Grenadines', 
+  'Salvador', 'Suriname', 'Trinite-et-Tobago', 'Uruguay', 'Venezuela');
 
 
 CREATE TABLE Commandes_AM AS(
@@ -68,14 +69,16 @@ END;
 
 
 
-CREATE OR REPLACE TRIGGER TRIGGER_FK_EMPLPOYES
+CREATE OR REPLACE TRIGGER TRIGGER_FK_EMPLOYES
 BEFORE delete ON employes_am
 FOR EACH ROW 
 DECLARE 
    cpt integer;
 BEGIN
-	select count(*) into cpt from (commandes_eur_n union commandes_eur_s)  where (:NEW.no_employe=commandes_eur_s.no_employe or :NEW.no_employe=commandes_eur_n.no_employe);
-	IF(cpt=0) then
+	select count(*) into cpt from (commandes_eur_n union commandes_eur_s) 
+	where (:NEW.no_employe=commandes_eur_s.no_employe 
+		or :NEW.no_employe=commandes_eur_n.no_employe);
+	IF(cpt<>0) then
 		RAISE_APPLICATION_ERROR(-20003,'Cet employe est enrole dans une commande');
   END IF;                      
 END;

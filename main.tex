@@ -160,16 +160,36 @@ Pour les tables Employés, Fournisseurs, Catégories ou Produits, on un seul fra
 
 \subsection{Placement des fragments sur les sites (sans réplication)}
 \subsubsection{Analyse}
-Afin de placer les fragments sur les sites, il faut :
-%TODO
-%Efficacité de notre fragmentation
-%Eviter de répéter ce qui a été dit au dessus
+Afin de placer les fragments sur les sites, il faut effectivement fragmenter la table initiale comme indiqué précédemment, ce qui permet d'être plus efficace, en cela que chaque site gère la base à laquelle il accède le plus souvent. 
+
 \subsubsection{Bilan}
-<<<<<<< HEAD
-=======
-%Insérer schéma global (cf. Charles?) -> écrire l'ensemble des tables de chaque base plutôt: EuropeDuNord = Clients_EU_N + Clients_AUTRE + ..., etc
->>>>>>> 70bdd1592e9cdde81ebc12dc13f54ee895725d2c
-%TODO
+Le bilan est alors, site par site :
+\begin{verbatim}
+Europe du Nord :
+   Clients Autres
+   Clients EU N
+   Commandes Autres
+   Commandes EU N
+   Detail Commandes Autres
+   Detail Commandes EU N
+   Fournisseurs
+   Stock Allemagne
+   Stock Autres
+   Stock EU N
+Europe du Sud :
+   Categories
+   Clients EU S
+   Commandes EU S
+   Detail Commandes EU S
+   Produits
+   Stock EU S
+Amerique :
+   Clients AM
+   Commandes AM
+   Detail Commandes AM
+   Employes
+   Stock AM
+\end{verbatim}
 
 \newpage
 \subsection{Mise en \oe uvre de la base sans réplication}
@@ -272,7 +292,7 @@ Droits d'accès :
 \inputminted{sql}{EUS_III-C-6_2.sql}
 \newpage
 
-Création des vues et synonymes : cela permet l'interrogation de la base comme si elle était opérante en centralisée
+Création des vues et synonymes : cela permet l'interrogation de la base comme si elle était opérante en centralisée.
 
 \inputminted{sql}{EUS_III-C-7.sql}
 \newpage
@@ -286,18 +306,12 @@ Vérification du bon fonctionnement de la table : on remarque que l'on obtient l
 \newpage 
 
 \subsubsection{Amérique}
-<<<<<<< HEAD
 On procède de la même façon pour le site Amérique :
 \inputminted{sql}{AM_SFW.sql}
 \newpage 
 
 Pour les vues et l'utilisation de synonymes, on a :
 \inputminted{sql}{AM_Vues.sql}
-=======
-
-%TODO
-...
->>>>>>> 70bdd1592e9cdde81ebc12dc13f54ee895725d2c
 \newpage
 
 \section{Tests de requête distribuées et optimisations}
@@ -345,7 +359,6 @@ Cette requête nous retourne le bon nombre de tuple (le même résultat que la r
 \end{figure}
 \newpage
 
-%TODO METTRE A JOUR
 \subsubsection{Troisième requête}
 \inputminted{sql}{EUS_IV-A-3.sql}
 \begin{figure}[H]
@@ -439,7 +452,67 @@ On portera une attention toute particulière au coût de la requête, ainsi pass
 \newpage
 
 \subsection{Amérique}
-%TODO
+Afin de tester si nos fragments ont bien été créés, on compare le contenu de nos tables avec le contenu des tables de Ryori, en respectant les conditions de la fragmentation bien évidemment. Pour ce faire, on utilise l’opérateur minus, qui renvoie les tuples existant dans première table, mais pas dans la seconde. Cependant, pour être sur qu’il n’existe pas des tuples dans la seconde qui n’existeraient pas dans la première, il faut tester avec l’opérateur minus “dans les deux sens” : A-B, puis B-A. Si notre fragmentation a bien été effectuée, on obtiendra un résultat nul pour chacun des tests.\\
+
+Clients :\\
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=15cm]{AM_req1.png}
+	\caption{Exécution de la requête pour clients}
+\end{figure}
+
+Employés :\\
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=15cm]{AM_req2.png}
+	\caption{Exécution de la requête pour employés}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=15cm]{AM_req2bis.png}
+	\caption{Exécution de la requête pour employés (bis)}
+\end{figure}
+
+Stock :\\
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=15cm]{AM_req3.png}
+	\caption{Exécution de la requête pour stock}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=15cm]{AM_req3bis.png}
+	\caption{Exécution de la requête pour stock (bis)}
+\end{figure}
+
+Commandes:\\
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=15cm]{AM_req4.png}
+	\caption{Exécution de la requête pour commandes}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=15cm]{AM_req4bis.png}
+	\caption{Exécution de la requête pour commandes (bis)}
+\end{figure}
+
+Détails commande :\\
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=15cm]{AM_req5.png}
+	\caption{Exécution de la requête pour détails commandes}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=15cm]{AM_req5bis.png}
+	\caption{Exécution de la requête pour détails commandes (bis)}
+\end{figure}
+
 \newpage
 
 \section{Réplications}
@@ -457,12 +530,12 @@ Trois réplications vont s'opérer sur ce site :
 \end{itemize}
 
 \subsubsection{Analyse}
-%TODO
+Fait ci-dessous avec la réplication associée.
 
 \subsubsection{Mise en \oe uvre des réplications pour des besoins locaux}
 On utilise à ce sujet :
 \inputminted{sql}{INSA-DB12-EuropeNord-replication.sql}
-Dans le cas des refresh-fast, on a besoin que le site maitre (celui qui possède les données) crée un fichier de log pour que le refresh accède à l'historique des modifications/différences.
+Dans le cas des refresh-fast, on a besoin que le site maître (celui qui possède les données) crée un fichier de log pour que le refresh accède à l'historique des modifications/différences.
 \hfill\break\hfill\break
 \textbf{Produits}
 Nous avons fait la réplication de la table \verb|Produits| en refresh-fast car il est peu probable que les mises à jour faites sur cette table dépassent plus de 50\% de sa cardinalité.
@@ -536,10 +609,10 @@ Comme les tables Produits et Catégories sont locales, il n'y aura pas de répli
 
 \subsubsection{Analyse}
 Table \verb|EMPLOYES| :\\
-Nous avons fait la réplication de la table \verb|EMPLOYES_AM| en fast  car nous avons estimé qu’il y aurait peu de chances pour que les mises à jour faites sur cette table dépasse plus de 50\% de sa cardinalité .\\
+Nous avons fait la réplication de la table \verb|EMPLOYES_AM| en fast  car nous avons estimé qu’il y aurait peu de chances pour que les mises à jour faites sur cette table dépasse plus de 50\% de sa cardinalité.\\
 
 Table \verb|FOURNISSEURS| :\\
-Nous avons fait la réplication de la table \verb|FOURNISSEURS| en complete car nous avons estimé que les mises à jour faites sur cette table pourraient dépasser plus de 50\% de sa cardinalité .
+Nous avons fait la réplication de la table \verb|FOURNISSEURS| en complete car nous avons estimé que les mises à jour faites sur cette table pourraient dépasser plus de 50\% de sa cardinalité.
 
 
 \subsubsection{Mise en \oe uvre des réplications pour les besoins locaux}
@@ -547,9 +620,9 @@ Nous avons fait la réplication de la table \verb|FOURNISSEURS| en complete car 
 \begin{itemize}
     \item Opéations réalisées localement
     \inputminted{sql}{EUS_V-A-5-a1.sql}
-<<<<<<< HEAD
-    \item Message émis au site maître : aucune demande
-    \item Réponse du site maître : aucune réponse
+    \item Message émis au site Europe du Nord : créer des logs pour Fournisseurs 
+    \item Réponse du site maître :
+    \inputminted{sql}{INSA-DB12-EuropeNord-rep-eu-n.sql}
     \item Tests de vérification de bon fonctionnement de la réplication : on fait un \verb|INSERT| dans la table chez le site maître et l'on vérifie que ce qui est inséré apparaît bien dans la réplication réalisée.\\
     On fait : 
     \begin{verbatim}
@@ -560,14 +633,6 @@ Nous avons fait la réplication de la table \verb|FOURNISSEURS| en complete car 
    	Et l'on vérifie alors bien que le tuple est inséré (c'est le cas ici).
     
     \item Évolutions éventuelles des contraintes d'intégrité : il faut modifier le déclencheur \verb|fk_no_fournisseur| pour que ce dernier utilise la vue matérialisée et non l'accès à distance par lien.
-=======
-    \item Message émis au site Europe du Nord : créer des logs pour Fournisseurs 
-    \item Réponse du site maître :
-\inputminted{sql}{INSA-DB12-EuropeNord-rep-eu-n.sql}
-    \item Tests de vérification de bon fonctionnement de la réplication : on fait un \verb|INSERT| dans la table chez le site maître et l'on vérifie que ce qui est inséré apparaît bien dans la réplication réalisée.
-    \item Évolutions éventuelles des contraintes d'intégrité
->>>>>>> 70bdd1592e9cdde81ebc12dc13f54ee895725d2c
-    \item Évolutions éventuelles des vues et des synonymes
 \end{itemize}
 
 \textbf{Employés}
@@ -593,34 +658,6 @@ On procède :
 \inputminted{sql}{AM_Replica.sql}
 
 \subsection{Bilan global des réplications mises en \oe uvre sur les différents sites}
-<<<<<<< HEAD
-\newpage 
-
-\section{Requêtes distribuées : tests et optimisations}
-\subsection{Europe du Sud}
-\subsubsection{Produits}
-Pour la réplication de la table Produits stockée localement, il sera nécessaire de créer un log sur celle-ci pour les 2 sites : Europe du nord et Amérique, et leur accorder le droits de lecture sur cette-dernière.
-
-Opérations réalisées en local :
-\inputminted{sql}{EUS_VI-1.sql}
-
-\subsubsection{Catégories}
-Pour la réplication de la table Catégories stockée localement, il sera nécessaire de créer un log sur celle-ci pour les 2 sites : Europe du nord et Amérique, et leur accorder le droit de lecture sur cette-dernière.
-
-Opérations réalisées en local :
-\inputminted{sql}{EUS_VI-2.sql}
-\newpage
-
-\subsection{Europe du Nord}
-%TODO
-\newpage 
-
-\subsection{Amérique}
-%TODO
-\newpage
-=======
-%TODO
-
 \begin{table}[H]
 \begin{tabular}{|r|c|c|c|}
 \hline
@@ -634,7 +671,6 @@ Categories & refresh-complete & x & refresh-fast \\ \hline
 \end{table}
 
 \section{Requêtes distribuées : tests et optimisations}
-
 \subsection{Europe du Nord}
 
 On exécute des requêtes pour tester les réplicats, on prendra l'exemple de Produits.\\La requête est la suivante:
@@ -649,7 +685,20 @@ Le résultat est identique à celui sans réplicats (par accès à distance), ma
     \caption{Plan d'exécution de la requête}
 \end{figure}
 
-%TODO
->>>>>>> 70bdd1592e9cdde81ebc12dc13f54ee895725d2c
+\subsection{Europe du Sud}
+\subsubsection{Produits}
+Pour la réplication de la table Produits stockée localement, il sera nécessaire de créer un log sur celle-ci pour les 2 sites : Europe du nord et Amérique, et leur accorder le droits de lecture sur cette-dernière.
+
+Opérations réalisées en local :
+\inputminted{sql}{EUS_VI-1.sql}
+
+\subsubsection{Catégories}
+Pour la réplication de la table Catégories stockée localement, il sera nécessaire de créer un log sur celle-ci pour les 2 sites : Europe du nord et Amérique, et leur accorder le droit de lecture sur cette-dernière.
+
+Opérations réalisées en local :
+\inputminted{sql}{EUS_VI-2.sql}
+\newpage
+
+\subsection{Amérique}
 
 \end{document}
