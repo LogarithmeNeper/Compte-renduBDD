@@ -1,9 +1,3 @@
------------------------------
---
---        FOREIGN KEYS LOCALES
---
------------------------------
-
 --Cle etrangere des commandes vers leurs clients respectifs
 ALTER TABLE COMMANDES_EU_N
 ADD CONSTRAINT FK_Client_Commandes_EU_N FOREIGN KEY (CODE_CLIENT) REFERENCES CLIENTS_EU_N(CODE_CLIENT);
