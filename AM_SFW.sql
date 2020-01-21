@@ -27,7 +27,8 @@ where pays in (--Amerique
 
 
 CREATE TABLE Commandes_AM AS(
-SELECT * FROM Ryori.Commandes@DBL_principale WHERE CODE_CLIENT IN (SELECT DISTINCT CODE_CLIENT FROM Clients)
+SELECT * FROM Ryori.Commandes@DBL_principale
+WHERE CODE_CLIENT IN (SELECT DISTINCT CODE_CLIENT FROM Clients)
 );
 
 CREATE TABLE Details_Commandes_AM AS(
