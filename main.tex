@@ -320,7 +320,7 @@ Binôme responsable : B3111, OULD HAMOUDA Aymen, LAFAILLE Yann
 \inputminted{sql}{EUS_IV-A-1.sql}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{EUS_req1.PNG}
+    \includegraphics[width=15cm]{EUS_req1.png}
     \caption{Première requête : résultat}
 \end{figure}
 Cette requête nous retourne le bon nombre de tuple, qui est le même résultat que la requête :
@@ -331,7 +331,7 @@ Cette requête nous retourne le bon nombre de tuple, qui est le même résultat 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{EUS_req1_analyse.PNG}
+    \includegraphics[width=15cm]{EUS_req1_analyse.png}
     \caption{Première requête : analyse}
 \end{figure}
 \newpage
@@ -340,7 +340,7 @@ Cette requête nous retourne le bon nombre de tuple, qui est le même résultat 
 \inputminted{sql}{EUS_IV-A-2.sql}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{EUS_req2.PNG}
+    \includegraphics[width=15cm]{EUS_req2.png}
     \caption{Deuxième requête : résultat}
 \end{figure}
 Cette requête nous retourne le bon nombre de tuple (le même résultat que la requête)
@@ -352,7 +352,7 @@ Cette requête nous retourne le bon nombre de tuple (le même résultat que la r
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{EUS_req2_analyse.PNG}
+    \includegraphics[width=15cm]{EUS_req2_analyse.png}
     \caption{Deuxième requête : analyse}
 \end{figure}
 \newpage
@@ -361,14 +361,14 @@ Cette requête nous retourne le bon nombre de tuple (le même résultat que la r
 \inputminted{sql}{EUS_IV-A-3.sql}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{EUS_req3.PNG}
+    \includegraphics[width=15cm]{EUS_req3.png}
     \caption{Troisième requête : résultat}
 \end{figure}
 Cette requête nous retourne le bon nombre de tuple (le même résultat que la requête 2 ci-dessus)
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{EUS_req3_analyse.PNG}
+    \includegraphics[width=15cm]{EUS_req3_analyse.png}
     \caption{Troisième requête : analyse}
 \end{figure}
 On remarque ici que nous avons un coût de 3 pour cette requête, alors que nous avions un coût de 9 pour la requête 3. La raison est que ici on ne fait pas de remote acces.
@@ -378,13 +378,13 @@ On remarque ici que nous avons un coût de 3 pour cette requête, alors que nous
 \inputminted{sql}{EUS_IV-A-4.sql}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{EUS_req4.PNG}
+    \includegraphics[width=15cm]{EUS_req4.png}
     \caption{Quatrième requête : résultat}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=15cm]{EUS_req4_analyse.PNG}
+    \includegraphics[width=15cm]{EUS_req4_analyse.png}
     \caption{Quatrième requête : analyse}
 \end{figure}
 \newpage
@@ -649,6 +649,28 @@ Nous avons fait la réplication de la table \verb|FOURNISSEURS| en complete car 
     \item Évolutions éventuelles des contraintes d'intégrité : il faut modifier le déclencheur pour que ce dernier utilie la vue matérialisée et non l'accès à distance par liens.
     \item Évolutions éventuelles des vues et des synonymes : il faut créer un synonyme pour la table. On fait \verb|CREATE SYNONYM Employes FOR DMV_EMPLOYES;|.
 \end{itemize}
+
+\subsubsection{Mise à jour des vues}
+
+\inputminted{sql}{EUS_V-B-5-1.sql}
+
+\inputminted{sql}{EUS_V-B-5-2.sql}
+
+\subsubsection{Création de logs pour les autres sites}
+
+\paragraph{Produits}
+Pour la réplication de la table Produits stockée localement, il sera nécessaire de créer un log sur celle-ci pour les 2 sites : Europe du nord et Amérique, et leur accorder le droits de lecture sur cette-dernière.
+
+Opérations réalisées en local :
+\inputminted{sql}{EUS_VI-1.sql}
+
+\paragraph{Catégories}
+Pour la réplication de la table Catégories stockée localement, il sera nécessaire de créer un log sur celle-ci pour les 2 sites : Europe du nord et Amérique, et leur accorder le droit de lecture sur cette-dernière.
+
+Opérations réalisées en local :
+\inputminted{sql}{EUS_VI-2.sql}
+\newpage
+
 \newpage 
 
 \subsection{Amérique}
@@ -657,6 +679,7 @@ On procède :
 
 \subsection{Bilan global des réplications mises en \oe uvre sur les différents sites}
 \begin{table}[H]
+\centering
 \begin{tabular}{|r|c|c|c|}
 \hline
 \multicolumn{1}{|l|}{} & \textbf{Europe du Nord} & \textbf{Europe du Sud} & \textbf{Amérique} \\ \hline
@@ -683,20 +706,8 @@ Le résultat est identique à celui sans réplicats (par accès à distance), ma
     \caption{Plan d'exécution de la requête}
 \end{figure}
 
-\subsection{Europe du Sud}
-\subsubsection{Produits}
-Pour la réplication de la table Produits stockée localement, il sera nécessaire de créer un log sur celle-ci pour les 2 sites : Europe du nord et Amérique, et leur accorder le droits de lecture sur cette-dernière.
+\section{Conclusion}
 
-Opérations réalisées en local :
-\inputminted{sql}{EUS_VI-1.sql}
-
-\subsubsection{Catégories}
-Pour la réplication de la table Catégories stockée localement, il sera nécessaire de créer un log sur celle-ci pour les 2 sites : Europe du nord et Amérique, et leur accorder le droit de lecture sur cette-dernière.
-
-Opérations réalisées en local :
-\inputminted{sql}{EUS_VI-2.sql}
-\newpage
-
-\subsection{Amérique}
+Ce TP nous a permis d'assimiler les concepts de fragmentation, de vues et de réplications ainsi que leurs avantages. Il nous parait maintenant évident qu'une solution centralisée n'est pas nécessairement optimale, et qu'une fragmentation bien choisie a un impact direct et non négligeable sur les performances d'applications.
 
 \end{document}
